@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:apprunbgrnd/stream_live_location.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -35,16 +36,24 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Background Location Tracking'),
-        ),
-        body: Center(
-          child: ElevatedButton(
-            onPressed: _getBatteryLevel,
-            child: Text(_batteryLevel),
+          appBar: AppBar(
+            title: const Text('Background Location Tracking'),
           ),
-        ),
-      ),
+          body: StreamLiveLocation()
+          // Center(
+          //   child: ElevatedButton(
+          //     // onPressed: _getBatteryLevel,
+          //     onPressed: () {
+          //       Navigator.push(
+          //         context,
+          //         MaterialPageRoute(
+          //             builder: (context) => const StreamLiveLocation()),
+          //       );
+          //     },
+          //     child: Text(_batteryLevel),
+          //   ),
+          // ),
+          ),
     );
   }
 

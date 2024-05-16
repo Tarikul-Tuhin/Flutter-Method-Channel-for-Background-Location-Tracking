@@ -4,7 +4,9 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.os.Binder
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 
 import com.google.android.gms.location.LocationServices
@@ -23,8 +25,19 @@ class LocationService: Service() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var locationClient: LocationClient
 
-    override fun onBind(p0: Intent?): IBinder? {
-        return null
+    private val binder = LocalBinder()
+    private var locationCallback: LocationCallback? = null
+
+    inner class LocalBinder: Binder() {
+        fun getService(): LocationService = this@LocationService
+    }
+
+    override fun onBind(intent: Intent?): IBinder? {
+        return binder
+    }
+
+    fun setLocationCallback(callback: LocationCallback) {
+        locationCallback = callback
     }
 
     override fun onCreate() {
@@ -56,8 +69,10 @@ class LocationService: Service() {
             .getLocationUpdates(10000L)
             .catch { e -> e.printStackTrace() }
             .onEach { location ->
-                val lat = location.latitude.toString().takeLast(3)
-                val long = location.longitude.toString().takeLast(3)
+                val lat = location.latitude
+                val long = location.longitude
+                Log.w("details","location from kotlin side: $lat  $long")
+                locationCallback?.onLocationUpdated(lat, long)
                 val updatedNotification = notification.setContentText(
                     "Location: ($lat, $long)"
                 )
@@ -69,7 +84,12 @@ class LocationService: Service() {
     }
 
     private fun stop() {
-        stopForeground(true)
+        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU){
+            // DO something for lollipop and above versions
+            stopForeground(STOP_FOREGROUND_DETACH)
+        } else{
+            stopForeground(true)
+        }
         stopSelf()
     }
 
